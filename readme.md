@@ -2,6 +2,8 @@
 
 This is my final project for EE243: Advanced Computer Vision
 
+![Lidar on Laptop](./img/IMG_1011.png)
+
 ## Environment Setup
 
 ### Dependencies
