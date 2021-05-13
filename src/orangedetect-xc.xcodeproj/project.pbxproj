@@ -8,7 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		FF2FA523264C8B810099358E /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = FF2FA522264C8B810099358E /* main.cpp */; };
-		FF410098264CC94700D7EE87 /* cam_rgbd.cpp in Sources */ = {isa = PBXBuildFile; fileRef = FF410096264CC94700D7EE87 /* cam_rgbd.cpp */; };
+		FF410098264CC94700D7EE87 /* rgbd.cpp in Sources */ = {isa = PBXBuildFile; fileRef = FF410096264CC94700D7EE87 /* rgbd.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -27,8 +27,8 @@
 		FF2FA51F264C8B810099358E /* orangedetect-xc */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "orangedetect-xc"; sourceTree = BUILT_PRODUCTS_DIR; };
 		FF2FA522264C8B810099358E /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
 		FF410092264CAD4B00D7EE87 /* orangedetect-xc.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "orangedetect-xc.entitlements"; sourceTree = "<group>"; };
-		FF410096264CC94700D7EE87 /* cam_rgbd.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = cam_rgbd.cpp; sourceTree = "<group>"; };
-		FF410097264CC94700D7EE87 /* cam_rgbd.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = cam_rgbd.hpp; sourceTree = "<group>"; };
+		FF410096264CC94700D7EE87 /* rgbd.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = rgbd.cpp; sourceTree = "<group>"; };
+		FF410097264CC94700D7EE87 /* rgbd.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = rgbd.hpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -63,8 +63,8 @@
 			children = (
 				FF410092264CAD4B00D7EE87 /* orangedetect-xc.entitlements */,
 				FF2FA522264C8B810099358E /* main.cpp */,
-				FF410096264CC94700D7EE87 /* cam_rgbd.cpp */,
-				FF410097264CC94700D7EE87 /* cam_rgbd.hpp */,
+				FF410096264CC94700D7EE87 /* rgbd.cpp */,
+				FF410097264CC94700D7EE87 /* rgbd.hpp */,
 			);
 			path = "orangedetect-xc";
 			sourceTree = "<group>";
@@ -95,7 +95,7 @@
 		FF2FA517264C8B810099358E /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 1240;
+				LastUpgradeCheck = 1250;
 				TargetAttributes = {
 					FF2FA51E264C8B810099358E = {
 						CreatedOnToolsVersion = 12.4;
@@ -125,7 +125,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				FF410098264CC94700D7EE87 /* cam_rgbd.cpp in Sources */,
+				FF410098264CC94700D7EE87 /* rgbd.cpp in Sources */,
 				FF2FA523264C8B810099358E /* main.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -248,6 +248,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = "orangedetect-xc/orangedetect-xc.entitlements";
+				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = KAYLU7HW27;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -274,6 +275,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = "orangedetect-xc/orangedetect-xc.entitlements";
+				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = KAYLU7HW27;
 				ENABLE_HARDENED_RUNTIME = YES;

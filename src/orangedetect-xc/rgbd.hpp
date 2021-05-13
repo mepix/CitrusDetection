@@ -1,12 +1,12 @@
 //
-//  cam_rgbd.hpp
+//  rgbd.hpp
 //  orangedetect-xc
 //
 //  Created by Merrick Campbell on 5/12/21.
 //
 
-#ifndef cam_rgbd_hpp
-#define cam_rgbd_hpp
+#ifndef rgbd_hpp
+#define rgbd_hpp
 
 #include <stdio.h>
 
@@ -27,7 +27,14 @@ public:
         RGBD_DEPTH
     };
 public:
+    /**
+     \brief CamRGBD is the default constructor for the Intel RealSense Device. The creation of this object will not start a stream.
+     */
     CamRGBD();
+    /**
+     \brief deconstructor will end a stream if one has been started
+     */
+    ~CamRGBD();
     /**
      \brief Initializes a real sense stream, either from a live camera or pre-recorded ROSbag
      \param useLiveStream set to TRUE to use the livestream from or set to FALSE to use a prerecorded ROSbag
@@ -42,7 +49,12 @@ public:
      \param ftype is an enum selector for the type of frame (COLOR or DEPTH)
      \returns A pointer to the selected image matrix
      */
-    cv::Mat* getFrame(CamRGBD::frameType ftype);
+    cv::Mat getFrame(CamRGBD::frameType ftype);
+    /**
+     \brief Accessor for the bag file path variable
+     \param path is the string to where the bag file is located on the local system
+     */
+    void setPathToBag(std::string path);
     
 private:
     // Declare depth colorizer for pretty visualization of depth data
@@ -63,9 +75,11 @@ private:
     cv::Mat m_imgColor;
     cv::Mat m_imgDepth;
     
+    bool m_streamStarted = false;
+    
     std::string m_pathToBag = "";
     
     
 };
 
-#endif /* cam_rgbd_hpp */
+#endif /* rgbd_hpp */
