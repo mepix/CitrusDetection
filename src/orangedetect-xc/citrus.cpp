@@ -13,16 +13,14 @@ CitrusDetector::CitrusDetector(){
 };
 
 
-std::vector<CitrusDetector::Citrus> CitrusDetector::findFruit(cv::Mat& imgColor, cv::Mat& imgDepth, CitrusDetector::citrusType fruitType){
+std::vector<CitrusDetector::Citrus> CitrusDetector::findFruit(cv::Mat& imgColor, cv::Mat& imgDepth, CitrusDetector::citrusType fruitType, bool visualize){
     
     // Distance Filtering
     cv::Mat imgFGB = removeBackground(imgColor, imgDepth,-1,-1,10,false);
-    cv::imshow("Foreground", imgFGB);
     
     // Color Filtering
     int color = getTargetColorFromFruitType(fruitType);
     cv::Mat imgColorFiltered = colorFilter(imgFGB, color,m_fruitColorRange);
-    cv::imshow("Fruit", imgColorFiltered);
     
     // Euclidean Clustering
     
@@ -31,6 +29,12 @@ std::vector<CitrusDetector::Citrus> CitrusDetector::findFruit(cv::Mat& imgColor,
     // RANSAC
     
     // Correlation
+    
+    // Visualize
+    if (visualize){
+        cv::imshow("Foreground", imgFGB);
+        cv::imshow("Fruit", imgColorFiltered);
+    }
     
     return m_foundFruits;
 }
@@ -72,8 +76,25 @@ cv::Mat CitrusDetector::removeBackground(cv::Mat& imgColor, cv::Mat& imgDepth, i
         imgColor.copyTo(imgFGD,(imgMask == cv::GC_FGD) | (imgMask == cv::GC_PR_FGD));
         
     } else { // Use Simple Threshold Filter
+        // Perform an Opening Operation (Erode, then Dilate)
+        cv::Mat imgBlur, imgErode, imgDilate;
+        cv::Mat kernel = cv::getStructuringElement(cv::MORPH_ELLIPSE, cv::Size(5,5));
+        int numOpeningItr = 3;
+        
+        // Smooth
+        cv::GaussianBlur(imgBW, imgBlur, cv::Size(5,5), 0.5);
+        
+        // Erode
+        cv::erode(imgBlur, imgErode, kernel,cv::Point(-1, -1),numOpeningItr);
+        
+        // Dilate
+        cv::dilate(imgErode, imgDilate, kernel,cv::Point(-1, -1),numOpeningItr);
+        
+        cv::imshow("Dilate",imgDilate);
+        
+        // Apply Mask
         imgFGD = cv::Mat::zeros(imgColor.rows, imgColor.cols, CV_8UC3);
-        imgColor.copyTo(imgFGD,(imgBW > PIX_BLACK+threshBGD) );
+        imgColor.copyTo(imgFGD,(imgDilate > PIX_BLACK+threshBGD) );
     }
     
     return imgFGD;

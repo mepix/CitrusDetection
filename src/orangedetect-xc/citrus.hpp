@@ -45,7 +45,7 @@ private:
     
 public:
     CitrusDetector();
-    std::vector<CitrusDetector::Citrus> findFruit(cv::Mat& imgColor, cv::Mat& imgDepth, CitrusDetector::citrusType fruitType); //TODO: change to vector of fruits
+    std::vector<CitrusDetector::Citrus> findFruit(cv::Mat& imgColor, cv::Mat& imgDepth, CitrusDetector::citrusType fruitType, bool visualize); //TODO: change to vector of fruits
     cv::Mat drawFruit(cv::Mat& img); // TODO: add an argument for a vector of citrus fruits
 private:
     /**
