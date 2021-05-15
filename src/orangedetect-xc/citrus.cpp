@@ -13,13 +13,16 @@ CitrusDetector::CitrusDetector(){
 };
 
 
-std::vector<CitrusDetector::Citrus> CitrusDetector::findFruit(cv::Mat& imgColor, cv::Mat& imgDepth){
+std::vector<CitrusDetector::Citrus> CitrusDetector::findFruit(cv::Mat& imgColor, cv::Mat& imgDepth, CitrusDetector::citrusType fruitType){
     
     // Distance Filtering
     cv::Mat imgFGB = removeBackground(imgColor, imgDepth,-1,-1,10,false);
     cv::imshow("Foreground", imgFGB);
     
     // Color Filtering
+    int color = getTargetColorFromFruitType(fruitType);
+    cv::Mat imgColorFiltered = colorFilter(imgFGB, color,m_fruitColorRange);
+    cv::imshow("Fruit", imgColorFiltered);
     
     // Euclidean Clustering
     
@@ -28,7 +31,6 @@ std::vector<CitrusDetector::Citrus> CitrusDetector::findFruit(cv::Mat& imgColor,
     // RANSAC
     
     // Correlation
-    
     
     return m_foundFruits;
 }
@@ -69,7 +71,7 @@ cv::Mat CitrusDetector::removeBackground(cv::Mat& imgColor, cv::Mat& imgDepth, i
         imgFGD = cv::Mat::zeros(imgColor.rows, imgColor.cols, CV_8UC3);
         imgColor.copyTo(imgFGD,(imgMask == cv::GC_FGD) | (imgMask == cv::GC_PR_FGD));
         
-    } else { // Use Simple Filter
+    } else { // Use Simple Threshold Filter
         imgFGD = cv::Mat::zeros(imgColor.rows, imgColor.cols, CV_8UC3);
         imgColor.copyTo(imgFGD,(imgBW > PIX_BLACK+threshBGD) );
     }
@@ -88,4 +90,35 @@ cv::Mat CitrusDetector::createMaskTDE(cv::Mat& imgIn, int thresh, int edSize){
     cv::erode(imgOut, imgOut, kernel);
     
     return imgOut;
+}
+
+cv::Mat CitrusDetector::colorFilter(cv::Mat& img, int targetColor, int targetRange){
+    // Create HSV image
+    cv::Mat imgHSV;
+    cv::cvtColor(img, imgHSV, cv::COLOR_BGR2HSV);
+    
+    // Get the H channel
+    std::vector<cv::Mat> channels(3);
+    cv::split(imgHSV, channels);
+    cv::Mat hue = channels[0]; // H is the first channel
+    
+    // Throwaway values outside range
+    cv::Mat imgFruit = cv::Mat::zeros(img.rows,img.cols, CV_8UC3);
+    img.copyTo(imgFruit,(hue > targetColor - targetRange) & (hue < targetColor + targetRange));
+    return imgFruit;
+}
+
+int CitrusDetector::getTargetColorFromFruitType(citrusType type){
+    switch (type) {
+        case CITRUS_ORANGE:
+            return m_fruitColorOrange;
+            break;
+        case CITRUS_GRAPEFRUIT:
+            return m_fruitColorGrapefruit;
+            break;
+        default:
+            std::cerr << "Invalid Citrus Type in getTargetColorFromFruitType" << std::endl;
+            return 90; // Value Halfway between [0-179]
+            break;
+    }
 }

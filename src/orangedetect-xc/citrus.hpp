@@ -38,11 +38,14 @@ public:
     };
 private:
     std::vector<CitrusDetector::Citrus> m_foundFruits;
+    int m_fruitColorOrange = 15;
+    int m_fruitColorGrapefruit = 30;
+    int m_fruitColorRange = 7;
 
     
 public:
     CitrusDetector();
-    std::vector<CitrusDetector::Citrus> findFruit(cv::Mat& imgColor, cv::Mat& imgDepth); //TODO: change to vector of fruits
+    std::vector<CitrusDetector::Citrus> findFruit(cv::Mat& imgColor, cv::Mat& imgDepth, CitrusDetector::citrusType fruitType); //TODO: change to vector of fruits
     cv::Mat drawFruit(cv::Mat& img); // TODO: add an argument for a vector of citrus fruits
 private:
     /**
@@ -56,6 +59,7 @@ private:
      \return a color matrix of the foreground pixels
      */
     cv::Mat removeBackground(cv::Mat& imgColor, cv::Mat& imgDepth, int kernelSize, int numItr, int threshBGD, bool useGrabCut);
+    
     /**
      \brief Performs a threshold, dilation, and erosion operation to create a mask
      \param imgIn 1-channel greyscale image
@@ -65,7 +69,21 @@ private:
      */
     cv::Mat createMaskTDE(cv::Mat& imgIn, int thresh, int edSize);
     
-    cv::Mat colorFilter(cv::Mat& imgFGD, int targetColor);
+    /**
+     \brief Filters the input image by the target color hue and removes all pixels not within the target range
+     \param img the frame to be filtered
+     \param targetColor the hue to be kept during the filtering operation [0-179]
+     \param targetRange the band (+/-) around the target range ro be kept durign the filtering  operation
+     \return a new filtered image matrix
+     */
+    cv::Mat colorFilter(cv::Mat& img, int targetColor, int targetRange);
+    
+    /**
+     \brief Converts the fruitType enum to a Hue value for the desired fruit
+     \param type indicates the desired citrus type
+     \return the hue value corresponding to the specific fruit, [0-179]
+     */
+    int getTargetColorFromFruitType(citrusType type);
 };
 
 

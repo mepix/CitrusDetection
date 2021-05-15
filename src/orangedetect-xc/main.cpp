@@ -54,7 +54,7 @@ int main(int argc, char * argv[]) try
                         
         // Find the Citrus
         if(!imageColor.empty() && !imageDepth.empty()){
-            myOJ.findFruit(imageColor, imageDepth);
+            myOJ.findFruit(imageColor, imageDepth, CitrusDetector::CITRUS_ORANGE);
         }
         
         // Visualize
