@@ -8,7 +8,12 @@
 #include "rgbd.hpp"
 
 CamRGBD::CamRGBD(){
+    // Create Alignment Utility
     m_alignFrames = new rs2::align(RS2_STREAM_COLOR);
+    //m_alignFrames = new rs2::align(RS2_STREAM_DEPTH);
+    
+    // Set ColorMap Scheme
+    m_colorMap.set_option(RS2_OPTION_COLOR_SCHEME, 2);
 }
 
 CamRGBD::~CamRGBD(){

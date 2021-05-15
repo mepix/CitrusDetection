@@ -50,7 +50,9 @@ TODO: comments about reading in the image and frame alignment
 
 - [Intel API Overview](https://github.com/IntelRealSense/librealsense/wiki/API-How-To)
 - [Intel RS-Convert](https://github.com/IntelRealSense/librealsense/tree/master/tools/convert)
-- [Intel Examples`](https://github.com/IntelRealSense/librealsense/tree/master/examples)
+- [Intel Examples](https://github.com/IntelRealSense/librealsense/tree/master/examples)
+- [Intel DOXYGEN](https://intelrealsense.github.io/librealsense/doxygen/index.html)
+- [Advanced Stream Alignment](https://dev.intelrealsense.com/docs/rs-align-advanced)
 
 ### General
 

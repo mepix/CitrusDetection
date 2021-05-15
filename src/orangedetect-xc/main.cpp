@@ -20,6 +20,7 @@
 
 // Project Classes
 #include "rgbd.hpp"
+#include "citrus.hpp"
 
 //TODO: Move These to input arguments before making the repo public
 bool useLiveStream = false;
@@ -34,6 +35,10 @@ int main(int argc, char * argv[]) try
     citrusCam.setPathToBag(pathToBag);
     citrusCam.initStream(useLiveStream);
         
+    // Setup Citrus Detector
+    CitrusDetector myOJ;
+    
+
     // Create Windows for Visualization
     const auto windowDepth = "Depth Image";
     const auto windowColor = "Color Image";
@@ -46,12 +51,16 @@ int main(int argc, char * argv[]) try
         citrusCam.procPipe();
         cv::Mat imageDepth = citrusCam.getFrame(CamRGBD::frameType::RGBD_DEPTH);
         cv::Mat imageColor = citrusCam.getFrame(CamRGBD::frameType::RGBD_COLOR);
-        
-
+                        
+        // Find the Citrus
+        if(!imageColor.empty() && !imageDepth.empty()){
+            myOJ.findFruit(imageColor, imageDepth);
+        }
         
         // Visualize
         cv::imshow(windowDepth, imageDepth);
         cv::imshow(windowColor, imageColor);
+        
     }
     
     return EXIT_SUCCESS;
