@@ -45,7 +45,7 @@ int main(int argc, char * argv[]) try
     cv::namedWindow(windowDepth, cv::WINDOW_AUTOSIZE);
     cv::namedWindow(windowColor, cv::WINDOW_AUTOSIZE);
     
-    while (cv::waitKey(5) < 0)
+    while (cv::waitKey(1) < 0)
     {
         // Get Current Frames
         citrusCam.procPipe();

@@ -23,6 +23,7 @@ std::vector<CitrusDetector::Citrus> CitrusDetector::findFruit(cv::Mat& imgColor,
     cv::Mat imgColorFiltered = colorFilter(imgFGB, color,m_fruitColorRange);
     
     // Euclidean Clustering
+    cv::Mat imgClustered = cv::Mat::zeros(imgColor.rows,imgColor.cols,CV_8UC3);
     
     // Circular Hough Transform
     
@@ -32,8 +33,11 @@ std::vector<CitrusDetector::Citrus> CitrusDetector::findFruit(cv::Mat& imgColor,
     
     // Visualize
     if (visualize){
-        cv::imshow("Foreground", imgFGB);
-        cv::imshow("Fruit", imgColorFiltered);
+        cv::Mat row1,row2,imgVis;
+        cv::hconcat(imgColor, imgDepth, row1);
+        cv::hconcat(imgColorFiltered, imgFGB, row2);
+        cv::vconcat(row1, row2, imgVis);
+        cv::imshow("Detected Fruit",imgVis);
     }
     
     return m_foundFruits;
@@ -90,8 +94,6 @@ cv::Mat CitrusDetector::removeBackground(cv::Mat& imgColor, cv::Mat& imgDepth, i
         // Dilate
         cv::dilate(imgErode, imgDilate, kernel,cv::Point(-1, -1),numOpeningItr);
         
-        cv::imshow("Dilate",imgDilate);
-        
         // Apply Mask
         imgFGD = cv::Mat::zeros(imgColor.rows, imgColor.cols, CV_8UC3);
         imgColor.copyTo(imgFGD,(imgDilate > PIX_BLACK+threshBGD) );
@@ -119,13 +121,26 @@ cv::Mat CitrusDetector::colorFilter(cv::Mat& img, int targetColor, int targetRan
     cv::cvtColor(img, imgHSV, cv::COLOR_BGR2HSV);
     
     // Get the H channel
-    std::vector<cv::Mat> channels(3);
-    cv::split(imgHSV, channels);
-    cv::Mat hue = channels[0]; // H is the first channel
+    std::vector<cv::Mat> channelsHSV(3);
+    cv::split(imgHSV, channelsHSV);
+    cv::Mat hue = channelsHSV[0]; // H is the first channel
+    
+    // Get the G channel
+    std::vector<cv::Mat> channelsBGR(3);
+    cv::split(img, channelsBGR);
+    cv::Mat green = channelsBGR[1]; // G is the second channel
+    
+    // Create Mask
+    cv::Mat imgMask = cv::Mat::zeros(img.rows, img.cols, CV_8UC1);
+    imgMask.setTo(PIX_WHITE,(hue > targetColor - targetRange) & (hue < targetColor + targetRange)); // Select Citrus Color Pixels from Hue Space
+    imgMask.setTo(PIX_BLACK,(green > 230)); // Remove Green Leaf Traces
+    
+    // Open Mask (Smooth, Erode, Dilate)
+    imgMask = morphOpen(imgMask, 3);
     
     // Throwaway values outside range
     cv::Mat imgFruit = cv::Mat::zeros(img.rows,img.cols, CV_8UC3);
-    img.copyTo(imgFruit,(hue > targetColor - targetRange) & (hue < targetColor + targetRange));
+    img.copyTo(imgFruit,imgMask);
     return imgFruit;
 }
 
@@ -142,4 +157,24 @@ int CitrusDetector::getTargetColorFromFruitType(citrusType type){
             return 90; // Value Halfway between [0-179]
             break;
     }
+}
+
+
+cv::Mat CitrusDetector::morphOpen(cv::Mat& img, int numItr){
+    // Create Mats
+    cv::Mat imgBlur, imgErode, imgDilate;
+    
+    // Get Kernel
+    cv::Mat kernel = cv::getStructuringElement(cv::MORPH_ELLIPSE, cv::Size(5,5));
+    
+    // Smooth
+    cv::GaussianBlur(img, imgBlur, cv::Size(5,5), 0.5);
+    
+    // Erode
+    cv::erode(imgBlur, imgErode, kernel,cv::Point(-1, -1),numItr);
+    
+    // Dilate
+    cv::dilate(imgErode, imgDilate, kernel,cv::Point(-1, -1),numItr);
+    
+    return imgDilate;
 }

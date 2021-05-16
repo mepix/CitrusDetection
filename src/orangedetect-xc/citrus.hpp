@@ -84,6 +84,8 @@ private:
      \return the hue value corresponding to the specific fruit, [0-179]
      */
     int getTargetColorFromFruitType(citrusType type);
+    
+    cv::Mat morphOpen(cv::Mat& img, int numItr);
 };
 
 
