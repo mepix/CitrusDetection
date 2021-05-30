@@ -24,6 +24,7 @@ std::vector<CitrusDetector::Citrus> CitrusDetector::findFruit(cv::Mat& imgColor,
     
     // Euclidean Clustering
     cv::Mat imgClustered = cv::Mat::zeros(imgColor.rows,imgColor.cols,CV_8UC3);
+    clusterFruits(imgColorFiltered);
     
     // Circular Hough Transform
     
@@ -177,4 +178,56 @@ cv::Mat CitrusDetector::morphOpen(cv::Mat& img, int numItr){
     cv::dilate(imgErode, imgDilate, kernel,cv::Point(-1, -1),numItr);
     
     return imgDilate;
+}
+
+void CitrusDetector::clusterFruits(cv::Mat& img){
+//    cv::imshow("Temp",mask);
+    cv::Mat mask;
+    cv::cvtColor(img,mask,cv::COLOR_BGR2GRAY);
+//    cv::imshow("Temp2",mask);
+//    cv::waitKey(0);
+//
+    // Get all non black points
+    std::vector<cv::Point> pts;
+    cv::findNonZero(mask, pts);
+    
+    // Define the radius tolerance
+    int th_distance = 18; // radius tolerance
+
+    // Apply partition
+    // All pixels within the radius tolerance distance will belong to the same class (same label)
+    std::vector<int> labels;
+    
+    int th2 = th_distance * th_distance;
+    int n_labels = cv::partition(pts, labels, [th2](const cv::Point& lhs, const cv::Point& rhs) {
+        return ((lhs.x - rhs.x)*(lhs.x - rhs.x) + (lhs.y - rhs.y)*(lhs.y - rhs.y)) < th2;
+    });
+
+    // You can save all points in the same class in a vector (one for each class), just like findContours
+    std::vector<std::vector<cv::Point>> contours(n_labels);
+    for (int i = 0; i < pts.size(); ++i)
+    {
+        contours[labels[i]].push_back(pts[i]);
+    }
+
+    // Draw results
+
+    // Build a vector of random color, one for each class (label)
+    std::vector<cv::Vec3b> colors;
+    for (int i = 0; i < n_labels; ++i)
+    {
+        colors.push_back(cv::Vec3b(rand() & 255, rand() & 255, rand() & 255));
+    }
+
+    // Draw the labels
+    cv::Mat3b lbl(mask.rows, mask.cols, cv::Vec3b(0, 0, 0));
+    for (int i = 0; i < pts.size(); ++i)
+    {
+        lbl(pts[i]) = colors[labels[i]];
+    }
+
+    imshow("Labels", lbl);
+//    cv::waitKey();
+    
+    
 }

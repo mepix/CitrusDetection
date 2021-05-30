@@ -86,6 +86,9 @@ private:
     int getTargetColorFromFruitType(citrusType type);
     
     cv::Mat morphOpen(cv::Mat& img, int numItr);
+    
+    
+    void clusterFruits(cv::Mat& mask);
 };
 
 
