@@ -92,7 +92,12 @@ private:
     
     CitrusDetector::Citrus fitCirclesToFruit(std::vector<std::vector<cv::Point>> contours);
     
-    cv::Mat drawFruitCircles(cv::Mat& img, CitrusDetector::Citrus fruit);
+    /**
+     \brief Draws circles on the image that represent the detected fruits
+     \param img for the circles to be drawn on, this image will be modified
+     \param fruit a collection of fruist with a center point and radius
+     */
+    void drawFruitCircles(cv::Mat& img, CitrusDetector::Citrus fruit);
     
 };
 

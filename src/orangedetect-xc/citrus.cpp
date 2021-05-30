@@ -16,17 +16,17 @@ CitrusDetector::CitrusDetector(){
 CitrusDetector::Citrus CitrusDetector::findFruit(cv::Mat& imgColor, cv::Mat& imgDepth, CitrusDetector::citrusType fruitType, bool visualize){
     
     // Distance Filtering
-    cv::Mat imgFGB = removeBackground(imgColor, imgDepth,-1,-1,10,false);
+    cv::Mat imgDistFiltered = removeBackground(imgColor, imgDepth,-1,-1,10,false);
     
     // Color Filtering
     int color = getTargetColorFromFruitType(fruitType);
-    cv::Mat imgColorFiltered = colorFilter(imgFGB, color,m_fruitColorRange);
+    cv::Mat imgColorFiltered = colorFilter(imgDistFiltered, color,m_fruitColorRange);
     
     // Euclidean Clustering
     cv::Mat imgClustered = cv::Mat::zeros(imgColor.rows,imgColor.cols,CV_8UC3);
     std::vector<std::vector<cv::Point>> contours = clusterFruits(imgColorFiltered);
     
-    // Circular Hough Transform
+    // Circle Fitting
     m_foundFruits = fitCirclesToFruit(contours);
     
     // RANSAC
@@ -34,10 +34,16 @@ CitrusDetector::Citrus CitrusDetector::findFruit(cv::Mat& imgColor, cv::Mat& img
     // Correlation
     
     // Visualize
+
     if (visualize){
+        // Draw Fruits on Images
+        drawFruitCircles(imgColor,m_foundFruits);
+        drawFruitCircles(imgColorFiltered, m_foundFruits);
+
+        // Create Combo Image to Show
         cv::Mat row1,row2,imgVis;
         cv::hconcat(imgColor, imgDepth, row1);
-        cv::hconcat(imgColorFiltered, imgFGB, row2);
+        cv::hconcat(imgColorFiltered, imgDistFiltered, row2);
         cv::vconcat(row1, row2, imgVis);
         cv::imshow("Detected Fruit",imgVis);
     }
@@ -235,7 +241,7 @@ std::vector<std::vector<cv::Point>> CitrusDetector::clusterFruits(cv::Mat& img){
 
 CitrusDetector::Citrus CitrusDetector::fitCirclesToFruit(std::vector<std::vector<cv::Point>> contours){
     
-    // Create
+    // Declare Variables
     std::vector<std::vector<cv::Point> > contours_poly( contours.size() );
     std::vector<cv::Rect> boundRect( contours.size() );
     std::vector<cv::Point2f>centers( contours.size() );
@@ -260,16 +266,17 @@ CitrusDetector::Citrus CitrusDetector::fitCirclesToFruit(std::vector<std::vector
     return fruitCircles;
 }
 
-cv::Mat CitrusDetector::drawFruitCircles(cv::Mat& img, CitrusDetector::Citrus fruit){
+void CitrusDetector::drawFruitCircles(cv::Mat& img, CitrusDetector::Citrus fruit){
     
-    cv::Scalar color = cv::Scalar(0,0,255);
+    // Color to draw the circles (Purple)
+    cv::Scalar color = cv::Scalar(255,0,127);
     
     // Iterate through the fruit
     for( int i = 0; i< fruit.centers.size(); i++ )
     {
         // Draw the Circles
-        cv::circle( img, fruit.centers[i], (int)fruit.radius[i], color, 2 );
+        cv::circle( img, fruit.centers[i], (int)fruit.radius[i], color, 5 );
+        cv::drawMarker(img, fruit.centers[i], color);
     }
     
-    return img;
 }
