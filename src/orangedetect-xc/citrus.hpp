@@ -88,8 +88,14 @@ private:
     cv::Mat morphOpen(cv::Mat& img, int numItr);
     
     
-    std::vector<std::vector<cv::Point>> clusterFruits(cv::Mat& mask);
+    std::vector<std::vector<cv::Point>> clusterFruits(cv::Mat& img,cv::Mat3b& imgClusterOut);
     
+    
+    /**
+     \brief Fits circles to the fruit using a collection of clustered blobs
+     \param contours is a collection of points that represent each blob
+     \return a Citrus struct that includes vectors of fruit centers and radiuses
+     */
     CitrusDetector::Citrus fitCirclesToFruit(std::vector<std::vector<cv::Point>> contours);
     
     /**

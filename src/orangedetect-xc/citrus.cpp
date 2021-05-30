@@ -23,8 +23,8 @@ CitrusDetector::Citrus CitrusDetector::findFruit(cv::Mat& imgColor, cv::Mat& img
     cv::Mat imgColorFiltered = colorFilter(imgDistFiltered, color,m_fruitColorRange);
     
     // Euclidean Clustering
-    cv::Mat imgClustered = cv::Mat::zeros(imgColor.rows,imgColor.cols,CV_8UC3);
-    std::vector<std::vector<cv::Point>> contours = clusterFruits(imgColorFiltered);
+    cv::Mat3b imgClustered = cv::Mat3b::zeros(imgColor.rows,imgColor.cols);
+    std::vector<std::vector<cv::Point>> contours = clusterFruits(imgColorFiltered,imgClustered);
     
     // Circle Fitting
     m_foundFruits = fitCirclesToFruit(contours);
@@ -34,7 +34,6 @@ CitrusDetector::Citrus CitrusDetector::findFruit(cv::Mat& imgColor, cv::Mat& img
     // Correlation
     
     // Visualize
-
     if (visualize){
         // Draw Fruits on Images
         drawFruitCircles(imgColor,m_foundFruits);
@@ -46,6 +45,8 @@ CitrusDetector::Citrus CitrusDetector::findFruit(cv::Mat& imgColor, cv::Mat& img
         cv::hconcat(imgColorFiltered, imgDistFiltered, row2);
         cv::vconcat(row1, row2, imgVis);
         cv::imshow("Detected Fruit",imgVis);
+        
+        cv::imshow("Clustered",imgClustered);
     }
     
     return m_foundFruits;
@@ -187,7 +188,12 @@ cv::Mat CitrusDetector::morphOpen(cv::Mat& img, int numItr){
     return imgDilate;
 }
 
-std::vector<std::vector<cv::Point>> CitrusDetector::clusterFruits(cv::Mat& img){
+std::vector<std::vector<cv::Point>> CitrusDetector::clusterFruits(cv::Mat& img,cv::Mat3b& imgCluster){
+    
+    //Ref: https://docs.opencv.org/4.5.2/d5/d38/group__core__cluster.html#ga2037c989e69b499c1aa271419f3a9b34 (Official Documentation)
+    //Ref: https://pcl.readthedocs.io/en/latest/cluster_extraction.html (Original Paper uses this!)
+    //Ref: https://stackoverflow.com/questions/33825249/opencv-euclidean-clustering-vs-findcontours (Good use of lambda expression)
+    
     //    cv::imshow("Temp",mask);
     cv::Mat mask;
     cv::cvtColor(img,mask,cv::COLOR_BGR2GRAY);
@@ -204,6 +210,8 @@ std::vector<std::vector<cv::Point>> CitrusDetector::clusterFruits(cv::Mat& img){
     // Apply partition
     // All pixels within the radius tolerance distance will belong to the same class (same label)
     std::vector<int> labels;
+    
+    //TODO: Replace this with a clustering method that includes DEPTH
     
     int th2 = th_distance * th_distance;
     int n_labels = cv::partition(pts, labels, [th2](const cv::Point& lhs, const cv::Point& rhs) {
@@ -227,19 +235,20 @@ std::vector<std::vector<cv::Point>> CitrusDetector::clusterFruits(cv::Mat& img){
     }
     
     // Draw the labels
-    cv::Mat3b lbl(mask.rows, mask.cols, cv::Vec3b(0, 0, 0));
     for (int i = 0; i < pts.size(); ++i)
     {
-        lbl(pts[i]) = colors[labels[i]];
+        imgCluster(pts[i]) = colors[labels[i]];
     }
-    
-    imshow("Labels", lbl);
-    //    cv::waitKey();
-    
+        
     return contours;
 }
 
 CitrusDetector::Citrus CitrusDetector::fitCirclesToFruit(std::vector<std::vector<cv::Point>> contours){
+    
+    //Ref: https://docs.opencv.org/4.5.2/da/d0c/tutorial_bounding_rects_circles.html
+    //Ref: https://docs.opencv.org/4.5.2/d4/d70/tutorial_hough_circle.html
+    
+    //TODO: experiment with more advanced fitting algorithms, RANSAC?
     
     // Declare Variables
     std::vector<std::vector<cv::Point> > contours_poly( contours.size() );
