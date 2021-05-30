@@ -33,11 +33,11 @@ public:
      \brief Citrus is a lighweight structure that defines a fruit with it's center coordinate and radius (in pixel space)
      */
     struct Citrus{
-        cv::Point center;
-        int radius;
+        std::vector<cv::Point2f> centers;
+        std::vector<float> radius;
     };
 private:
-    std::vector<CitrusDetector::Citrus> m_foundFruits;
+    CitrusDetector::Citrus m_foundFruits;
     int m_fruitColorOrange = 15;
     int m_fruitColorGrapefruit = 30;
     int m_fruitColorRange = 7;
@@ -45,7 +45,7 @@ private:
     
 public:
     CitrusDetector();
-    std::vector<CitrusDetector::Citrus> findFruit(cv::Mat& imgColor, cv::Mat& imgDepth, CitrusDetector::citrusType fruitType, bool visualize); //TODO: change to vector of fruits
+    CitrusDetector::Citrus findFruit(cv::Mat& imgColor, cv::Mat& imgDepth, CitrusDetector::citrusType fruitType, bool visualize); //TODO: change to vector of fruits
     cv::Mat drawFruit(cv::Mat& img); // TODO: add an argument for a vector of citrus fruits
 private:
     /**
@@ -88,7 +88,12 @@ private:
     cv::Mat morphOpen(cv::Mat& img, int numItr);
     
     
-    void clusterFruits(cv::Mat& mask);
+    std::vector<std::vector<cv::Point>> clusterFruits(cv::Mat& mask);
+    
+    CitrusDetector::Citrus fitCirclesToFruit(std::vector<std::vector<cv::Point>> contours);
+    
+    cv::Mat drawFruitCircles(cv::Mat& img, CitrusDetector::Citrus fruit);
+    
 };
 
 

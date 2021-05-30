@@ -13,7 +13,7 @@ CitrusDetector::CitrusDetector(){
 };
 
 
-std::vector<CitrusDetector::Citrus> CitrusDetector::findFruit(cv::Mat& imgColor, cv::Mat& imgDepth, CitrusDetector::citrusType fruitType, bool visualize){
+CitrusDetector::Citrus CitrusDetector::findFruit(cv::Mat& imgColor, cv::Mat& imgDepth, CitrusDetector::citrusType fruitType, bool visualize){
     
     // Distance Filtering
     cv::Mat imgFGB = removeBackground(imgColor, imgDepth,-1,-1,10,false);
@@ -24,9 +24,10 @@ std::vector<CitrusDetector::Citrus> CitrusDetector::findFruit(cv::Mat& imgColor,
     
     // Euclidean Clustering
     cv::Mat imgClustered = cv::Mat::zeros(imgColor.rows,imgColor.cols,CV_8UC3);
-    clusterFruits(imgColorFiltered);
+    std::vector<std::vector<cv::Point>> contours = clusterFruits(imgColorFiltered);
     
     // Circular Hough Transform
+    m_foundFruits = fitCirclesToFruit(contours);
     
     // RANSAC
     
@@ -70,7 +71,7 @@ cv::Mat CitrusDetector::removeBackground(cv::Mat& imgColor, cv::Mat& imgDepth, i
         imgMask.setTo(cv::Scalar::all(cv::GC_BGD)); // Set "background" as default guess
         imgMask.setTo(cv::GC_PR_BGD, imgMaskBGD == 0); // Relax this to "probably background" for pixels outside "far" region
         imgMask.setTo(cv::GC_FGD, imgMaskFGD == 255); // Set pixels within the "near" region to "foreground"
-
+        
         // Apply the GrabCut Algorithm
         cv::Mat m_imgBackground;
         cv::Mat m_imgForeground;
@@ -180,20 +181,20 @@ cv::Mat CitrusDetector::morphOpen(cv::Mat& img, int numItr){
     return imgDilate;
 }
 
-void CitrusDetector::clusterFruits(cv::Mat& img){
-//    cv::imshow("Temp",mask);
+std::vector<std::vector<cv::Point>> CitrusDetector::clusterFruits(cv::Mat& img){
+    //    cv::imshow("Temp",mask);
     cv::Mat mask;
     cv::cvtColor(img,mask,cv::COLOR_BGR2GRAY);
-//    cv::imshow("Temp2",mask);
-//    cv::waitKey(0);
-//
+    //    cv::imshow("Temp2",mask);
+    //    cv::waitKey(0);
+    //
     // Get all non black points
     std::vector<cv::Point> pts;
     cv::findNonZero(mask, pts);
     
     // Define the radius tolerance
     int th_distance = 18; // radius tolerance
-
+    
     // Apply partition
     // All pixels within the radius tolerance distance will belong to the same class (same label)
     std::vector<int> labels;
@@ -202,32 +203,73 @@ void CitrusDetector::clusterFruits(cv::Mat& img){
     int n_labels = cv::partition(pts, labels, [th2](const cv::Point& lhs, const cv::Point& rhs) {
         return ((lhs.x - rhs.x)*(lhs.x - rhs.x) + (lhs.y - rhs.y)*(lhs.y - rhs.y)) < th2;
     });
-
+    
     // You can save all points in the same class in a vector (one for each class), just like findContours
     std::vector<std::vector<cv::Point>> contours(n_labels);
     for (int i = 0; i < pts.size(); ++i)
     {
         contours[labels[i]].push_back(pts[i]);
     }
-
+    
     // Draw results
-
+    
     // Build a vector of random color, one for each class (label)
     std::vector<cv::Vec3b> colors;
     for (int i = 0; i < n_labels; ++i)
     {
         colors.push_back(cv::Vec3b(rand() & 255, rand() & 255, rand() & 255));
     }
-
+    
     // Draw the labels
     cv::Mat3b lbl(mask.rows, mask.cols, cv::Vec3b(0, 0, 0));
     for (int i = 0; i < pts.size(); ++i)
     {
         lbl(pts[i]) = colors[labels[i]];
     }
-
+    
     imshow("Labels", lbl);
-//    cv::waitKey();
+    //    cv::waitKey();
     
+    return contours;
+}
+
+CitrusDetector::Citrus CitrusDetector::fitCirclesToFruit(std::vector<std::vector<cv::Point>> contours){
     
+    // Create
+    std::vector<std::vector<cv::Point> > contours_poly( contours.size() );
+    std::vector<cv::Rect> boundRect( contours.size() );
+    std::vector<cv::Point2f>centers( contours.size() );
+    std::vector<float>radius( contours.size() );
+    
+    // Loop through the contours
+    for( int i = 0; i < contours.size(); i++ )
+    {
+        // Use a polygon approximation for the contour blobs
+        cv::approxPolyDP( contours[i], contours_poly[i], 3, true );
+        
+        // Find the minimum enclosing circle
+        cv::minEnclosingCircle( contours_poly[i], centers[i], radius[i] );
+    }
+    
+    // Prepare a citrus struct
+    Citrus fruitCircles;
+    fruitCircles.centers = centers;
+    fruitCircles.radius = radius;
+    
+    // Return the citrus struct
+    return fruitCircles;
+}
+
+cv::Mat CitrusDetector::drawFruitCircles(cv::Mat& img, CitrusDetector::Citrus fruit){
+    
+    cv::Scalar color = cv::Scalar(0,0,255);
+    
+    // Iterate through the fruit
+    for( int i = 0; i< fruit.centers.size(); i++ )
+    {
+        // Draw the Circles
+        cv::circle( img, fruit.centers[i], (int)fruit.radius[i], color, 2 );
+    }
+    
+    return img;
 }
