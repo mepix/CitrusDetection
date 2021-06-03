@@ -31,7 +31,18 @@ bool CamRGBD::initStream(bool useLiveStream){
         m_cfg.enable_stream(RS2_STREAM_DEPTH);
         m_cfg.enable_stream(RS2_STREAM_COLOR);
         m_pipe.start(m_cfg); //File will be opened in read mode at this point
+        
+        //TODO:MPC:BUG: This set_real_time does not seem to work and freezes all playback!
+        // set_real_time = false to make sure we process every frame from the bag
+//        auto device = m_pipe.get_active_profile().get_device();
+//        rs2::playback playback = device.as<rs2::playback>();
+//        playback.set_real_time(true);
+//        playback.resume();
+//        auto duration = playback.get_duration();
+        
     }
+    
+
     
     m_streamStarted = true;
     
@@ -42,6 +53,7 @@ bool CamRGBD::initStream(bool useLiveStream){
 void CamRGBD::procPipe(){
     // Wait for next set of frames from the camera
     m_data = m_pipe.wait_for_frames();
+//    m_pipe.poll_for_frames( &m_data );
     
     // Align all frames to depth viewport
     m_data = m_alignFrames->process(m_data);
@@ -56,6 +68,7 @@ void CamRGBD::procPipe(){
     m_imgDepth = cv::Mat(cv::Size(w, h), CV_8UC3, (void*)depth.get_data(), cv::Mat::AUTO_STEP);
     m_imgColor = cv::Mat(cv::Size(w, h), CV_8UC3, (void*)color.get_data(), cv::Mat::AUTO_STEP);
     cv::cvtColor(m_imgColor, m_imgColor, cv::COLOR_RGB2BGR);
+    
 }
 
 cv::Mat CamRGBD::getFrame(CamRGBD::frameType ftype){

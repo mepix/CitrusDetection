@@ -36,7 +36,7 @@ int main(int argc, char * argv[]) try
     citrusCam.initStream(useLiveStream);
         
     // Setup Citrus Detector
-    CitrusDetector myOJ;
+    CitrusDetector myOJ(true);
     
 
     // Create Windows for Visualization
@@ -51,7 +51,13 @@ int main(int argc, char * argv[]) try
         citrusCam.procPipe();
         cv::Mat imageDepth = citrusCam.getFrame(CamRGBD::frameType::RGBD_DEPTH);
         cv::Mat imageColor = citrusCam.getFrame(CamRGBD::frameType::RGBD_COLOR);
+        
+        std::cout<< imageDepth.size << std::endl;
                         
+//        // Resize Images
+//        resize(imageDepth, imageDepth, cv::Size(), 0.25, 0.25, cv::INTER_AREA);
+//        resize(imageColor, imageColor, cv::Size(), 0.25, 0.25, cv::INTER_AREA);
+        
         // Find the Citrus
         if(!imageColor.empty() && !imageDepth.empty()){
             myOJ.findFruit(imageColor, imageDepth, CitrusDetector::CITRUS_ORANGE,true);

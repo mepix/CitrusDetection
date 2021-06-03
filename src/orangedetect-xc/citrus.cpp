@@ -8,12 +8,25 @@
 #include "citrus.hpp"
 
 
-CitrusDetector::CitrusDetector(){
+CitrusDetector::CitrusDetector(bool scaleInput){
+    // Save whether or not to scale image
+    m_scaleInput =  scaleInput;
     
+    // Scale Filtering Parameters Accordingly
+    if(m_scaleInput){
+        m_depthFilterKernelSize = 3;
+        m_morphFilterKernelSize = 3;
+    }
 };
 
 
 CitrusDetector::Citrus CitrusDetector::findFruit(cv::Mat& imgColor, cv::Mat& imgDepth, CitrusDetector::citrusType fruitType, bool visualize){
+    
+    // Scale Image Before Processing
+    if(m_scaleInput){
+        cv::resize(imgDepth, imgDepth, cv::Size(), m_scaleFactor, m_scaleFactor, cv::INTER_AREA);
+        cv::resize(imgColor, imgColor, cv::Size(), m_scaleFactor, m_scaleFactor, cv::INTER_AREA);
+    }
     
     // Distance Filtering
     cv::Mat imgDistFiltered = removeBackground(imgColor, imgDepth,-1,-1,10,false);
@@ -91,17 +104,16 @@ cv::Mat CitrusDetector::removeBackground(cv::Mat& imgColor, cv::Mat& imgDepth, i
     } else { // Use Simple Threshold Filter
         // Perform an Opening Operation (Erode, then Dilate)
         cv::Mat imgBlur, imgErode, imgDilate;
-        cv::Mat kernel = cv::getStructuringElement(cv::MORPH_ELLIPSE, cv::Size(5,5));
-        int numOpeningItr = 3;
+        cv::Mat kernel = cv::getStructuringElement(cv::MORPH_ELLIPSE, cv::Size(m_depthFilterKernelSize,m_depthFilterKernelSize));
         
         // Smooth
-        cv::GaussianBlur(imgBW, imgBlur, cv::Size(5,5), 0.5);
+        cv::GaussianBlur(imgBW, imgBlur, cv::Size(m_depthFilterKernelSize,m_depthFilterKernelSize), 0.5);
         
         // Erode
-        cv::erode(imgBlur, imgErode, kernel,cv::Point(-1, -1),numOpeningItr);
+        cv::erode(imgBlur, imgErode, kernel,cv::Point(-1, -1),m_depthNumOpeningItr);
         
         // Dilate
-        cv::dilate(imgErode, imgDilate, kernel,cv::Point(-1, -1),numOpeningItr);
+        cv::dilate(imgErode, imgDilate, kernel,cv::Point(-1, -1),m_depthNumOpeningItr);
         
         // Apply Mask
         imgFGD = cv::Mat::zeros(imgColor.rows, imgColor.cols, CV_8UC3);
@@ -174,10 +186,10 @@ cv::Mat CitrusDetector::morphOpen(cv::Mat& img, int numItr){
     cv::Mat imgBlur, imgErode, imgDilate;
     
     // Get Kernel
-    cv::Mat kernel = cv::getStructuringElement(cv::MORPH_ELLIPSE, cv::Size(5,5));
+    cv::Mat kernel = cv::getStructuringElement(cv::MORPH_ELLIPSE, cv::Size(m_morphFilterKernelSize,m_morphFilterKernelSize));
     
     // Smooth
-    cv::GaussianBlur(img, imgBlur, cv::Size(5,5), 0.5);
+    cv::GaussianBlur(img, imgBlur, cv::Size(m_morphFilterKernelSize,m_morphFilterKernelSize), 0.5);
     
     // Erode
     cv::erode(imgBlur, imgErode, kernel,cv::Point(-1, -1),numItr);
@@ -205,7 +217,7 @@ std::vector<std::vector<cv::Point>> CitrusDetector::clusterFruits(cv::Mat& img,c
     cv::findNonZero(mask, pts);
     
     // Define the radius tolerance
-    int th_distance = 18; // radius tolerance
+    int th_distance = 18*0.25; // radius tolerance
     
     // Apply partition
     // All pixels within the radius tolerance distance will belong to the same class (same label)
@@ -218,7 +230,7 @@ std::vector<std::vector<cv::Point>> CitrusDetector::clusterFruits(cv::Mat& img,c
         return ((lhs.x - rhs.x)*(lhs.x - rhs.x) + (lhs.y - rhs.y)*(lhs.y - rhs.y)) < th2;
     });
     
-    // You can save all points in the same class in a vector (one for each class), just like findContours
+    // Save all points in the same class in a vector (one for each class)
     std::vector<std::vector<cv::Point>> contours(n_labels);
     for (int i = 0; i < pts.size(); ++i)
     {

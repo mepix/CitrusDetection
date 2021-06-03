@@ -37,14 +37,26 @@ public:
         std::vector<float> radius;
     };
 private:
+    // Vector for Found Fruits
     CitrusDetector::Citrus m_foundFruits;
+    
+    // Fruit Color Descriptors
     int m_fruitColorOrange = 15;
     int m_fruitColorGrapefruit = 30;
     int m_fruitColorRange = 7;
+    
+    // Filter Kernels
+    int m_depthFilterKernelSize = 5;
+    int m_morphFilterKernelSize = 5; //This has a big role in the number of citrus detected
+    int m_depthNumOpeningItr = 3;
+    
+    // Image Scaling
+    bool m_scaleInput = true;
+    double m_scaleFactor = 0.25;
 
     
 public:
-    CitrusDetector();
+    CitrusDetector(bool scaleInput);
     CitrusDetector::Citrus findFruit(cv::Mat& imgColor, cv::Mat& imgDepth, CitrusDetector::citrusType fruitType, bool visualize); //TODO: change to vector of fruits
     cv::Mat drawFruit(cv::Mat& img); // TODO: add an argument for a vector of citrus fruits
 private:
