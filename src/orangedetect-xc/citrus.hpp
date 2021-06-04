@@ -45,6 +45,9 @@ private:
     int m_fruitColorGrapefruit = 30;
     int m_fruitColorRange = 7;
     
+    // Fruit Spatial Descriptors
+    float m_fruitMinRadius = 7.5;
+    
     // Filter Kernels
     int m_depthFilterKernelSize = 5;
     int m_morphFilterKernelSize = 5; //This has a big role in the number of citrus detected
@@ -111,11 +114,20 @@ private:
     CitrusDetector::Citrus fitCirclesToFruit(std::vector<std::vector<cv::Point>> contours);
     
     /**
+     \brief Removed objets that are too small to be considered a fruit
+     \param fruit is a struct that contains the centers and radisus of fruit candidates
+     \param radiusThresh indicated the minimum radius necessary to be considered a fruit
+     */
+    bool filterFoundFruit(CitrusDetector::Citrus& fruit, float radiusThresh);
+    
+    
+    /**
      \brief Draws circles on the image that represent the detected fruits
      \param img for the circles to be drawn on, this image will be modified
      \param fruit a collection of fruist with a center point and radius
      */
     void drawFruitCircles(cv::Mat& img, CitrusDetector::Citrus fruit);
+    
     
 };
 

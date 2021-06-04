@@ -41,6 +41,9 @@ CitrusDetector::Citrus CitrusDetector::findFruit(cv::Mat& imgColor, cv::Mat& img
     
     // Circle Fitting
     m_foundFruits = fitCirclesToFruit(contours);
+    if(filterFoundFruit(m_foundFruits, m_fruitMinRadius)){
+//        std::cout<< "filtered fruit" << std::endl;
+    };
     
     // RANSAC
     
@@ -285,6 +288,30 @@ CitrusDetector::Citrus CitrusDetector::fitCirclesToFruit(std::vector<std::vector
     
     // Return the citrus struct
     return fruitCircles;
+}
+
+bool CitrusDetector::filterFoundFruit(CitrusDetector::Citrus& fruit, float radiusThresh){
+    // Determine the input length
+    int lengthIn = int(fruit.centers.size());
+    
+    // Iterate through the found fruit
+    for(int i = lengthIn-1; i >= 0; i--){
+        std::cout << fruit.radius[i] << std::endl;
+        // Remove fruits that are too small (both RADIUS and CENTERS!)
+        float radius = fruit.radius.at(i);
+        
+        if(radius < radiusThresh){
+
+            fruit.radius.erase(fruit.radius.begin() + i);
+            fruit.centers.erase(fruit.centers.begin() + i);
+        }
+    }
+    
+    // Determine the output length
+    int lengthOut = int(fruit.centers.size());
+    
+    // Return [T] if the length has changed
+    return (lengthIn != lengthOut);
 }
 
 void CitrusDetector::drawFruitCircles(cv::Mat& img, CitrusDetector::Citrus fruit){
