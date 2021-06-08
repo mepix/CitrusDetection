@@ -23,7 +23,10 @@ CitrusDetector::CitrusDetector(bool scaleInput){
 
 
 CitrusDetector::Citrus CitrusDetector::findFruit(cv::Mat& imgColor, cv::Mat& imgDepth, CitrusDetector::citrusType fruitType, bool visualize){
-        
+    
+    // Start Clock
+    auto timeStart = std::chrono::system_clock::now();
+    
     // Scale Image Before Processing
     if(m_scaleInput){
         cv::resize(imgDepth, imgDepth, cv::Size(), m_scaleFactor, m_scaleFactor, cv::INTER_AREA);
@@ -54,6 +57,12 @@ CitrusDetector::Citrus CitrusDetector::findFruit(cv::Mat& imgColor, cv::Mat& img
     
     // Correlation
     
+    // End Clock
+    auto timeEnd = std::chrono::system_clock::now();
+    std::chrono::duration<double> elapsed_seconds = timeEnd - timeStart;
+    m_timeToRunMS = int(elapsed_seconds.count()*1000); //Convert to MS
+
+    
     // Visualize
     if (visualize){
         // Draw Fruits on Images
@@ -73,7 +82,7 @@ CitrusDetector::Citrus CitrusDetector::findFruit(cv::Mat& imgColor, cv::Mat& img
         
         // Add Text Bar
         cv::Mat textBarTop = createTextBar(-1, -1, cv::Size(960,90),true);
-        cv::Mat textBarBot = createTextBar(int(m_foundFruits.centers.size()), -1, cv::Size(960,90),false);
+        cv::Mat textBarBot = createTextBar(int(m_foundFruits.centers.size()), m_timeToRunMS, cv::Size(960,90),false);
         cv::vconcat(textBarTop, col123, imgText);
         cv::vconcat(imgText, textBarBot, imgVis);
         
@@ -365,7 +374,7 @@ void CitrusDetector::drawFruitCircles(cv::Mat& img, CitrusDetector::Citrus fruit
     
 }
 
-cv::Mat CitrusDetector::createTextBar(int numCitrusFound, int fps, cv::Size size, bool top){
+cv::Mat CitrusDetector::createTextBar(int numCitrusFound, int timeMS, cv::Size size, bool top){
     cv::Mat textBar = cv::Mat::zeros(size,CV_8UC3);
     
     if (top){
@@ -373,7 +382,9 @@ cv::Mat CitrusDetector::createTextBar(int numCitrusFound, int fps, cv::Size size
 
     } else { // Bottom Bar
         std::string count = "Citrus Count: " + std::to_string(numCitrusFound);
+        std::string rate = "Compute Time (MS): " + std::to_string(timeMS);
         cv::putText(textBar, count, cv::Point(20,50), cv::FONT_HERSHEY_TRIPLEX, 1, cv::Scalar(255,255,255));
+        cv::putText(textBar, rate, cv::Point(500,50), cv::FONT_HERSHEY_TRIPLEX, 1, cv::Scalar(255,255,255));
 
     }
     

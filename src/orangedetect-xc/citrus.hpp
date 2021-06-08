@@ -67,6 +67,10 @@ private:
     // Clustering Thresholds
     int m_clusterThresh3D = 24;
     int m_clusterThresh2D = 18;
+    
+    // Timing Parameters
+    bool m_timePerformance = true;
+    int m_timeToRunMS;
 
     
 public:
@@ -139,7 +143,7 @@ private:
      */
     void drawFruitCircles(cv::Mat& img, CitrusDetector::Citrus fruit);
     
-    cv::Mat createTextBar(int numCitrusFound, int fps, cv::Size size, bool top);
+    cv::Mat createTextBar(int numCitrusFound, int timeMS, cv::Size size, bool top);
     
     
 };
