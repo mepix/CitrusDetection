@@ -73,7 +73,7 @@ CitrusDetector::Citrus CitrusDetector::findFruit(cv::Mat& imgColor, cv::Mat& img
         
         // Add Text Bar
         cv::Mat textBarTop = createTextBar(-1, -1, cv::Size(960,90),true);
-        cv::Mat textBarBot = createTextBar(-1, -1, cv::Size(960,90),false);
+        cv::Mat textBarBot = createTextBar(int(m_foundFruits.centers.size()), -1, cv::Size(960,90),false);
         cv::vconcat(textBarTop, col123, imgText);
         cv::vconcat(imgText, textBarBot, imgVis);
         
@@ -368,7 +368,15 @@ void CitrusDetector::drawFruitCircles(cv::Mat& img, CitrusDetector::Citrus fruit
 cv::Mat CitrusDetector::createTextBar(int numCitrusFound, int fps, cv::Size size, bool top){
     cv::Mat textBar = cv::Mat::zeros(size,CV_8UC3);
     
-    cv::putText(textBar, "Found Fruit", cv::Point(20,40), cv::FONT_HERSHEY_TRIPLEX, 1, cv::Scalar(255,255,255));
+    if (top){
+        cv::putText(textBar, "Citrus Detection", cv::Point(340,50), cv::FONT_HERSHEY_TRIPLEX, 1, cv::Scalar(255,255,255));
+
+    } else { // Bottom Bar
+        std::string count = "Citrus Count: " + std::to_string(numCitrusFound);
+        cv::putText(textBar, count, cv::Point(20,50), cv::FONT_HERSHEY_TRIPLEX, 1, cv::Scalar(255,255,255));
+
+    }
+    
     
     return textBar;
 }
