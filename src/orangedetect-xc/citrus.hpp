@@ -20,6 +20,8 @@
 #define PIX_BLACK 0
 #define PIX_WHITE 255
 
+#define DEBUG_CLUSTER false
+
 /**
  \brief CitrusDetector is a C++ class that uses classical computer vision methods to detect citrus fruit on trees in an orchard environment.
  */
@@ -35,6 +37,11 @@ public:
     struct Citrus{
         std::vector<cv::Point2f> centers;
         std::vector<float> radius;
+    };
+protected:
+    enum citrusCluster{
+        CLUSTER_2D,
+        CLUSTER_3D
     };
 private:
     // Vector for Found Fruits
@@ -56,6 +63,10 @@ private:
     // Image Scaling
     bool m_scaleInput = true;
     double m_scaleFactor = 0.25;
+    
+    // Clustering Thresholds
+    int m_clusterThresh3D = 24;
+    int m_clusterThresh2D = 18;
 
     
 public:
@@ -104,6 +115,8 @@ private:
     
     
     std::vector<std::vector<cv::Point>> clusterFruits(cv::Mat& img,cv::Mat3b& imgClusterOut);
+    
+    std::vector<std::vector<cv::Point>> clusterFruits3D(cv::Mat& imgColor, cv::Mat& imgDepth, cv::Mat3b& imgClusterOut,CitrusDetector::citrusCluster clusterMethod);
     
     
     /**

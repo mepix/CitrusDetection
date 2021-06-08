@@ -16,6 +16,8 @@ CitrusDetector::CitrusDetector(bool scaleInput){
     if(m_scaleInput){
         m_depthFilterKernelSize = 3;
         m_morphFilterKernelSize = 3;
+        m_clusterThresh2D = m_clusterThresh2D * m_scaleFactor;
+        m_clusterThresh3D = m_clusterThresh3D * m_scaleFactor;
     }
 };
 
@@ -37,7 +39,8 @@ CitrusDetector::Citrus CitrusDetector::findFruit(cv::Mat& imgColor, cv::Mat& img
     
     // Euclidean Clustering
     cv::Mat3b imgClustered = cv::Mat3b::zeros(imgColor.rows,imgColor.cols);
-    std::vector<std::vector<cv::Point>> contours = clusterFruits(imgColorFiltered,imgClustered);
+//    std::vector<std::vector<cv::Point>> contours = clusterFruits(imgColorFiltered,imgClustered);
+    std::vector<std::vector<cv::Point>> contours = clusterFruits3D(imgColorFiltered,imgDepth,imgClustered,CLUSTER_2D);
     
     // Circle Fitting
     m_foundFruits = fitCirclesToFruit(contours);
@@ -255,6 +258,81 @@ std::vector<std::vector<cv::Point>> CitrusDetector::clusterFruits(cv::Mat& img,c
         imgCluster(pts[i]) = colors[labels[i]];
     }
         
+    return contours;
+}
+
+std::vector<std::vector<cv::Point>> CitrusDetector::clusterFruits3D(cv::Mat& imgColor, cv::Mat& imgDepth, cv::Mat3b& imgCluster, CitrusDetector::citrusCluster clusterMethod){
+    
+    //Ref: https://docs.opencv.org/4.5.2/d5/d38/group__core__cluster.html#ga2037c989e69b499c1aa271419f3a9b34 (Official Documentation)
+    //Ref: https://pcl.readthedocs.io/en/latest/cluster_extraction.html (Original Paper uses this!)
+    //Ref: https://stackoverflow.com/questions/33825249/opencv-euclidean-clustering-vs-findcontours (Good use of lambda expression)
+    
+    // Determine whether to perform a 2D or 3D cluster
+    bool use3D = (clusterMethod==CLUSTER_3D);
+    
+    // Create a mask of the color regions
+    cv::Mat mask;
+    cv::cvtColor(imgColor,mask,cv::COLOR_BGR2GRAY);
+
+#if DEBUG_CLUSTER
+    cv::imshow("ColorMask",mask);
+    cv::imshow("Depth3D",imgDepth);
+    cv::waitKey(0);
+#endif
+    
+    // Get all non black points in the image mask
+    std::vector<cv::Point> pts;
+    cv::findNonZero(mask, pts);
+    
+    // Build X,Y,Z Points for filtering
+    std::vector<cv::Point3i> pts3d;
+    for(int i = 0; i < pts.size(); i++){
+        // Get the depth coordinate from the x and y;
+        int x = pts.at(i).x;
+        int y = pts.at(i).y;
+        int z = (use3D ? imgDepth.at<uchar>(x,y) : 0); //Set to 0 if 2D
+
+#if DEBUG_CLUSTER
+        std::cout<< x << "," << y << "," << z << std::endl;
+#endif
+
+        // Add the 3D Point to the vector
+        pts3d.push_back(cv::Point3i(x,y,z));
+
+    }
+    
+    // Define the radius tolerance
+    int th_distance = (use3D ? m_clusterThresh3D : m_clusterThresh2D); // radius tolerance
+    
+    // Apply partition
+    // All pixels within the radius tolerance distance will belong to the same label
+    std::vector<int> labels;
+    int th2 = th_distance * th_distance; // Avoid square root
+    int n_labels = cv::partition(pts3d, labels, [th2](const cv::Point3i& lhs, const cv::Point3i& rhs) {
+        return ((lhs.x - rhs.x)*(lhs.x - rhs.x) + (lhs.y - rhs.y)*(lhs.y - rhs.y) + (lhs.z - rhs.z)*(lhs.z - rhs.z)) < th2;
+    });
+    
+    // Save all points in the same class in a vector (one for each class)
+    std::vector<std::vector<cv::Point>> contours(n_labels);
+    for (int i = 0; i < pts.size(); ++i)
+    {
+        contours[labels[i]].push_back(pts[i]);
+    }
+        
+    // Build a vector of random color, one for each class (label)
+    std::vector<cv::Vec3b> colors;
+    for (int i = 0; i < n_labels; ++i)
+    {
+        colors.push_back(cv::Vec3b(rand() & 255, rand() & 255, rand() & 255));
+    }
+    
+    // Apply Clusters to Labels
+    for (int i = 0; i < pts.size(); ++i)
+    {
+        imgCluster(pts[i]) = colors[labels[i]];
+    }
+    
+    // Return the found contours
     return contours;
 }
 
