@@ -114,9 +114,7 @@ private:
     cv::Mat morphOpen(cv::Mat& img, int numItr);
     
     
-    std::vector<std::vector<cv::Point>> clusterFruits(cv::Mat& img,cv::Mat3b& imgClusterOut);
-    
-    std::vector<std::vector<cv::Point>> clusterFruits3D(cv::Mat& imgColor, cv::Mat& imgDepth, cv::Mat3b& imgClusterOut,CitrusDetector::citrusCluster clusterMethod);
+    std::vector<std::vector<cv::Point>> clusterFruits(cv::Mat& imgColor, cv::Mat& imgDepth, cv::Mat3b& imgClusterOut,CitrusDetector::citrusCluster clusterMethod);
     
     
     /**

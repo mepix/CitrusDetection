@@ -22,14 +22,28 @@
 #include "rgbd.hpp"
 #include "citrus.hpp"
 
-//TODO: Move These to input arguments before making the repo public
+// Globals
 bool useLiveStream = false;
-std::string pathToBag = "/Users/merrickcampbell/Movies/realsense-bags/orange_groves/orange_1/20210428_091503.bag";
+std::string pathToBag = "";
 
+// Main Routine
 int main(int argc, char * argv[]) try
 {
     std::cout << "Running Citrus Detector" << std::endl;
 
+    // Check Input Arguments
+    if (argc < 2 && !useLiveStream){
+        std::cerr << "ROSBAG File Path Required" << std::endl;
+        return -1;
+    } else {
+        // Get the path to the ROSBAG
+        pathToBag = argv[1];
+        std::cout << "ROSBAG File Path: " << pathToBag << std::endl;
+        
+        // Get output folder
+        
+    }
+    
     // Setup L515 Camera
     CamRGBD citrusCam;
     citrusCam.setPathToBag(pathToBag);
@@ -51,13 +65,7 @@ int main(int argc, char * argv[]) try
         citrusCam.procPipe();
         cv::Mat imageDepth = citrusCam.getFrame(CamRGBD::frameType::RGBD_DEPTH);
         cv::Mat imageColor = citrusCam.getFrame(CamRGBD::frameType::RGBD_COLOR);
-        
-        std::cout<< imageDepth.size << std::endl;
-                        
-//        // Resize Images
-//        resize(imageDepth, imageDepth, cv::Size(), 0.25, 0.25, cv::INTER_AREA);
-//        resize(imageColor, imageColor, cv::Size(), 0.25, 0.25, cv::INTER_AREA);
-        
+                                        
         // Find the Citrus
         if(!imageColor.empty() && !imageDepth.empty()){
             myOJ.findFruit(imageColor, imageDepth, CitrusDetector::CITRUS_ORANGE,true);

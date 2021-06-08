@@ -40,7 +40,7 @@ CitrusDetector::Citrus CitrusDetector::findFruit(cv::Mat& imgColor, cv::Mat& img
     // Euclidean Clustering
     cv::Mat3b imgClustered = cv::Mat3b::zeros(imgColor.rows,imgColor.cols);
 //    std::vector<std::vector<cv::Point>> contours = clusterFruits(imgColorFiltered,imgClustered);
-    std::vector<std::vector<cv::Point>> contours = clusterFruits3D(imgColorFiltered,imgDepth,imgClustered,CLUSTER_2D);
+    std::vector<std::vector<cv::Point>> contours = clusterFruits(imgColorFiltered,imgDepth,imgClustered,CLUSTER_3D);
     
     // Circle Fitting
     m_foundFruits = fitCirclesToFruit(contours);
@@ -206,62 +206,7 @@ cv::Mat CitrusDetector::morphOpen(cv::Mat& img, int numItr){
     return imgDilate;
 }
 
-std::vector<std::vector<cv::Point>> CitrusDetector::clusterFruits(cv::Mat& img,cv::Mat3b& imgCluster){
-    
-    //Ref: https://docs.opencv.org/4.5.2/d5/d38/group__core__cluster.html#ga2037c989e69b499c1aa271419f3a9b34 (Official Documentation)
-    //Ref: https://pcl.readthedocs.io/en/latest/cluster_extraction.html (Original Paper uses this!)
-    //Ref: https://stackoverflow.com/questions/33825249/opencv-euclidean-clustering-vs-findcontours (Good use of lambda expression)
-    
-    //    cv::imshow("Temp",mask);
-    cv::Mat mask;
-    cv::cvtColor(img,mask,cv::COLOR_BGR2GRAY);
-    //    cv::imshow("Temp2",mask);
-    //    cv::waitKey(0);
-    //
-    // Get all non black points
-    std::vector<cv::Point> pts;
-    cv::findNonZero(mask, pts);
-    
-    // Define the radius tolerance
-    int th_distance = 18*0.25; // radius tolerance
-    
-    // Apply partition
-    // All pixels within the radius tolerance distance will belong to the same class (same label)
-    std::vector<int> labels;
-    
-    //TODO: Replace this with a clustering method that includes DEPTH
-    
-    int th2 = th_distance * th_distance;
-    int n_labels = cv::partition(pts, labels, [th2](const cv::Point& lhs, const cv::Point& rhs) {
-        return ((lhs.x - rhs.x)*(lhs.x - rhs.x) + (lhs.y - rhs.y)*(lhs.y - rhs.y)) < th2;
-    });
-    
-    // Save all points in the same class in a vector (one for each class)
-    std::vector<std::vector<cv::Point>> contours(n_labels);
-    for (int i = 0; i < pts.size(); ++i)
-    {
-        contours[labels[i]].push_back(pts[i]);
-    }
-    
-    // Draw results
-    
-    // Build a vector of random color, one for each class (label)
-    std::vector<cv::Vec3b> colors;
-    for (int i = 0; i < n_labels; ++i)
-    {
-        colors.push_back(cv::Vec3b(rand() & 255, rand() & 255, rand() & 255));
-    }
-    
-    // Draw the labels
-    for (int i = 0; i < pts.size(); ++i)
-    {
-        imgCluster(pts[i]) = colors[labels[i]];
-    }
-        
-    return contours;
-}
-
-std::vector<std::vector<cv::Point>> CitrusDetector::clusterFruits3D(cv::Mat& imgColor, cv::Mat& imgDepth, cv::Mat3b& imgCluster, CitrusDetector::citrusCluster clusterMethod){
+std::vector<std::vector<cv::Point>> CitrusDetector::clusterFruits(cv::Mat& imgColor, cv::Mat& imgDepth, cv::Mat3b& imgCluster, CitrusDetector::citrusCluster clusterMethod){
     
     //Ref: https://docs.opencv.org/4.5.2/d5/d38/group__core__cluster.html#ga2037c989e69b499c1aa271419f3a9b34 (Official Documentation)
     //Ref: https://pcl.readthedocs.io/en/latest/cluster_extraction.html (Original Paper uses this!)
