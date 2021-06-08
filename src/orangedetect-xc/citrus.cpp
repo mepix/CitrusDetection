@@ -385,7 +385,6 @@ cv::Mat CitrusDetector::createTextBar(int numCitrusFound, int timeMS, cv::Size s
         std::string rate = "Compute Time (MS): " + std::to_string(timeMS);
         cv::putText(textBar, count, cv::Point(20,50), cv::FONT_HERSHEY_TRIPLEX, 1, cv::Scalar(255,255,255));
         cv::putText(textBar, rate, cv::Point(500,50), cv::FONT_HERSHEY_TRIPLEX, 1, cv::Scalar(255,255,255));
-
     }
     
     

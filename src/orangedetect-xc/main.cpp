@@ -25,24 +25,38 @@
 // Globals
 bool useLiveStream = false;
 std::string pathToBag = "";
+std::string saveFilePath = "";
 
 // Main Routine
 int main(int argc, char * argv[]) try
 {
     std::cout << "Running Citrus Detector" << std::endl;
 
-    // Check Input Arguments
-    if (argc < 2 && !useLiveStream){
-        std::cerr << "ROSBAG File Path Required" << std::endl;
-        return -1;
-    } else {
-        // Get the path to the ROSBAG
-        pathToBag = argv[1];
-        std::cout << "ROSBAG File Path: " << pathToBag << std::endl;
-        
-        // Get output folder
-        
-    }
+    // Process Input Arguments
+    std::cout << argc << std::endl;
+    switch(argc){
+        case 3:
+            std::cout << "Recording Enabled" << std::endl;
+            saveFilePath = argv[2];
+            std::cout << "Save File Path: " << saveFilePath << std::endl;
+        case 2:
+            std::cout << "Running from ROSBAG" << std::endl;
+            // Get the path to the ROSBAG
+            pathToBag = argv[1];
+            std::cout << "ROSBAG File Path: " << pathToBag << std::endl;
+
+            break;
+        case 1:
+            std::cout << "Running from Live RGBD Camera" << std::endl;
+            useLiveStream = true;
+        // Fall through remaining cases
+        case 0:
+        default:
+            std::cerr << "Invalid Input Arguments" << std::endl;
+            return EXIT_FAILURE;
+            break;
+    };
+    
     
     // Setup L515 Camera
     CamRGBD citrusCam;
