@@ -23,12 +23,15 @@ CitrusDetector::CitrusDetector(bool scaleInput){
 
 
 CitrusDetector::Citrus CitrusDetector::findFruit(cv::Mat& imgColor, cv::Mat& imgDepth, CitrusDetector::citrusType fruitType, bool visualize){
-    
+        
     // Scale Image Before Processing
     if(m_scaleInput){
         cv::resize(imgDepth, imgDepth, cv::Size(), m_scaleFactor, m_scaleFactor, cv::INTER_AREA);
         cv::resize(imgColor, imgColor, cv::Size(), m_scaleFactor, m_scaleFactor, cv::INTER_AREA);
     }
+
+    // Create a copy of the original image
+    cv::Mat imgOrig = imgColor.clone();
     
     // Distance Filtering
     cv::Mat imgDistFiltered = removeBackground(imgColor, imgDepth,-1,-1,10,false);
@@ -39,13 +42,12 @@ CitrusDetector::Citrus CitrusDetector::findFruit(cv::Mat& imgColor, cv::Mat& img
     
     // Euclidean Clustering
     cv::Mat3b imgClustered = cv::Mat3b::zeros(imgColor.rows,imgColor.cols);
-//    std::vector<std::vector<cv::Point>> contours = clusterFruits(imgColorFiltered,imgClustered);
-    std::vector<std::vector<cv::Point>> contours = clusterFruits(imgColorFiltered,imgDepth,imgClustered,CLUSTER_3D);
+    std::vector<std::vector<cv::Point>> contours = clusterFruits(imgColorFiltered,imgDepth,imgClustered,CLUSTER_2D);
     
     // Circle Fitting
     m_foundFruits = fitCirclesToFruit(contours);
     if(filterFoundFruit(m_foundFruits, m_fruitMinRadius)){
-//        std::cout<< "filtered fruit" << std::endl;
+
     };
     
     // RANSAC
@@ -56,16 +58,27 @@ CitrusDetector::Citrus CitrusDetector::findFruit(cv::Mat& imgColor, cv::Mat& img
     if (visualize){
         // Draw Fruits on Images
         drawFruitCircles(imgColor,m_foundFruits);
-        drawFruitCircles(imgColorFiltered, m_foundFruits);
+//        drawFruitCircles(imgColorFiltered, m_foundFruits);
 
         // Create Combo Image to Show
-        cv::Mat row1,row2,imgVis;
-        cv::hconcat(imgColor, imgDepth, row1);
-        cv::hconcat(imgColorFiltered, imgDistFiltered, row2);
-        cv::vconcat(row1, row2, imgVis);
-        cv::imshow("Detected Fruit",imgVis);
+        cv::Mat imgVis,imgText;
         
-        cv::imshow("Clustered",imgClustered);
+        cv::Mat col1,col2,col3,col12,col123;
+        cv::vconcat(imgOrig, imgColor, col1);
+        cv::vconcat(imgDepth, imgClustered, col2);
+        cv::vconcat(imgDistFiltered, imgColorFiltered, col3);
+        cv::hconcat(col1, col2, col12);
+        cv::hconcat(col12, col3, col123);
+        
+        
+        // Add Text Bar
+        cv::Mat textBarTop = createTextBar(-1, -1, cv::Size(960,90),true);
+        cv::Mat textBarBot = createTextBar(-1, -1, cv::Size(960,90),false);
+        cv::vconcat(textBarTop, col123, imgText);
+        cv::vconcat(imgText, textBarBot, imgVis);
+        
+        // Display
+        cv::imshow("Detected Fruit",imgVis);
     }
     
     return m_foundFruits;
@@ -350,4 +363,12 @@ void CitrusDetector::drawFruitCircles(cv::Mat& img, CitrusDetector::Citrus fruit
         cv::drawMarker(img, fruit.centers[i], color);
     }
     
+}
+
+cv::Mat CitrusDetector::createTextBar(int numCitrusFound, int fps, cv::Size size, bool top){
+    cv::Mat textBar = cv::Mat::zeros(size,CV_8UC3);
+    
+    cv::putText(textBar, "Found Fruit", cv::Point(20,40), cv::FONT_HERSHEY_TRIPLEX, 1, cv::Scalar(255,255,255));
+    
+    return textBar;
 }

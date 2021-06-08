@@ -139,6 +139,8 @@ private:
      */
     void drawFruitCircles(cv::Mat& img, CitrusDetector::Citrus fruit);
     
+    cv::Mat createTextBar(int numCitrusFound, int fps, cv::Size size, bool top);
+    
     
 };
 
