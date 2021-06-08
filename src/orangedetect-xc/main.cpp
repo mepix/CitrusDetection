@@ -25,6 +25,7 @@
 // Globals
 bool useLiveStream = false;
 std::string pathToBag = "";
+bool record = false;
 std::string saveFilePath = "";
 
 // Main Routine
@@ -37,10 +38,12 @@ int main(int argc, char * argv[]) try
     switch(argc){
         case 3:
             std::cout << "Recording Enabled" << std::endl;
+            record = true;
             saveFilePath = argv[2];
             std::cout << "Save File Path: " << saveFilePath << std::endl;
         case 2:
             std::cout << "Running from ROSBAG" << std::endl;
+            useLiveStream = false;
             // Get the path to the ROSBAG
             pathToBag = argv[1];
             std::cout << "ROSBAG File Path: " << pathToBag << std::endl;
@@ -65,6 +68,8 @@ int main(int argc, char * argv[]) try
         
     // Setup Citrus Detector
     CitrusDetector myOJ(true);
+    myOJ.setSaveFilePath(saveFilePath);
+    if(record){myOJ.startRecord();}
     
 
     // Create Windows for Visualization
@@ -90,6 +95,9 @@ int main(int argc, char * argv[]) try
         cv::imshow(windowColor, imageColor);
         
     }
+    
+    // Stop Recording
+    myOJ.stopRecord();
     
     return EXIT_SUCCESS;
     

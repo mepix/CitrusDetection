@@ -88,10 +88,20 @@ CitrusDetector::Citrus CitrusDetector::findFruit(cv::Mat& imgColor, cv::Mat& img
         
         // Display
         cv::imshow("Detected Fruit",imgVis);
+        
+        // Record
+        saveFrame(imgVis, "proc", m_frameNum);
     }
+    
+    //Increment Frame Number
+    m_frameNum++;
     
     return m_foundFruits;
 }
+
+void CitrusDetector::setSaveFilePath(std::string path){m_savePath = path;}
+void CitrusDetector::startRecord(){m_record = true;}
+void CitrusDetector::stopRecord(){m_record = false;}
 
 //**//**//**//**//**//**//**//
 // PRIVATE MEMBER FUNCTIONS //
@@ -389,4 +399,22 @@ cv::Mat CitrusDetector::createTextBar(int numCitrusFound, int timeMS, cv::Size s
     
     
     return textBar;
+}
+
+
+
+bool CitrusDetector::saveFrame(cv::Mat& img, std::string frameName, int frameNum){
+    if(m_record){
+        // Zero-Pad the Frame Counter
+        std::ostringstream ss;
+        ss << std::setw(5) << std::setfill('0') << frameNum;
+        std::string str = ss.str();
+    
+        // Save the Images
+        std::string fileOut = m_savePath + frameName + str + ".png";
+        cv::imwrite(fileOut, img);
+        return true;
+    } else {
+        return false;
+    }
 }

@@ -71,12 +71,20 @@ private:
     // Timing Parameters
     bool m_timePerformance = true;
     int m_timeToRunMS;
+    
+    // Recording Parameters
+    bool m_record = false;
+    std::string m_savePath = "";
+    int m_frameNum = 0;
 
     
 public:
     CitrusDetector(bool scaleInput);
     CitrusDetector::Citrus findFruit(cv::Mat& imgColor, cv::Mat& imgDepth, CitrusDetector::citrusType fruitType, bool visualize); //TODO: change to vector of fruits
     cv::Mat drawFruit(cv::Mat& img); // TODO: add an argument for a vector of citrus fruits
+    void setSaveFilePath(std::string path);
+    void startRecord();
+    void stopRecord();
 private:
     /**
      \brief Segments the foreground and background using the depth imformation.
@@ -145,6 +153,9 @@ private:
     
     cv::Mat createTextBar(int numCitrusFound, int timeMS, cv::Size size, bool top);
     
+
+    
+    bool saveFrame(cv::Mat& img, std::string frameName, int frameNum);
     
 };
 
