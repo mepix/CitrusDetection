@@ -7,6 +7,9 @@
 
 #include "citrus.hpp"
 
+//**//**//**//**//**//**//**//**//
+//  CONSTRUCTORS & DESTRUCTORS  //
+//**//**//**//**//**//**//**//**//
 
 CitrusDetector::CitrusDetector(bool scaleInput){
     // Save whether or not to scale image
@@ -18,9 +21,13 @@ CitrusDetector::CitrusDetector(bool scaleInput){
         m_morphFilterKernelSize = 3;
         m_clusterThresh2D = m_clusterThresh2D * m_scaleFactor;
         m_clusterThresh3D = m_clusterThresh3D * m_scaleFactor;
+        m_circleLineSize = 2;
     }
 };
 
+//**//**//**//**//**//**//**//
+// PUBLIC MEMBER FUNCTIONS  //
+//**//**//**//**//**//**//**//
 
 CitrusDetector::Citrus CitrusDetector::findFruit(cv::Mat& imgColor, cv::Mat& imgDepth, CitrusDetector::citrusType fruitType, bool visualize){
     
@@ -370,16 +377,13 @@ bool CitrusDetector::filterFoundFruit(CitrusDetector::Citrus& fruit, float radiu
 }
 
 void CitrusDetector::drawFruitCircles(cv::Mat& img, CitrusDetector::Citrus fruit){
-    
-    // Color to draw the circles (Purple)
-    cv::Scalar color = cv::Scalar(255,0,127);
-    
+        
     // Iterate through the fruit
     for( int i = 0; i< fruit.centers.size(); i++ )
     {
         // Draw the Circles
-        cv::circle( img, fruit.centers[i], (int)fruit.radius[i], color, 5 );
-        cv::drawMarker(img, fruit.centers[i], color);
+        cv::circle( img, fruit.centers[i], (int)fruit.radius[i], m_circleColor, m_circleLineSize);
+        cv::drawMarker(img, fruit.centers[i], m_circleColor);
     }
     
 }

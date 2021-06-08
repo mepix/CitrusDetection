@@ -72,6 +72,10 @@ private:
     bool m_timePerformance = true;
     int m_timeToRunMS;
     
+    // Visualization Parameters
+    int m_circleLineSize = 5;
+    cv::Scalar m_circleColor = cv::Scalar(255,0,127);
+    
     // Recording Parameters
     bool m_record = false;
     std::string m_savePath = "";
@@ -80,10 +84,28 @@ private:
     
 public:
     CitrusDetector(bool scaleInput);
-    CitrusDetector::Citrus findFruit(cv::Mat& imgColor, cv::Mat& imgDepth, CitrusDetector::citrusType fruitType, bool visualize); //TODO: change to vector of fruits
+    CitrusDetector::Citrus findFruit(cv::Mat& imgColor, cv::Mat& imgDepth, CitrusDetector::citrusType fruitType, bool visualize);
+    /**
+     \brief Draws circles on the image that represent the detected citrus
+     \param img for the circles to be drawn on, THIS WILL BE MODIFIED in the current implementation!
+     \return an image with the circles drawn
+     */
     cv::Mat drawFruit(cv::Mat& img); // TODO: add an argument for a vector of citrus fruits
+
+    /**
+     \brief Sets the directory to save the processed image frames if recording is enabled
+     \param path is the desired directory path
+     */
     void setSaveFilePath(std::string path);
+
+    /**
+     \brief Mutator function to enable recording
+     */
     void startRecord();
+
+    /**
+     \brief Mutator function to disable recording
+     */
     void stopRecord();
 private:
     /**
@@ -123,6 +145,12 @@ private:
      */
     int getTargetColorFromFruitType(citrusType type);
     
+    /**
+     \brief Custom function to perform a morphological opening operation
+     \param img input image to open
+     \param numItr the number of times to perform the operation
+     \return a new matrix with the completed operation
+     */
     cv::Mat morphOpen(cv::Mat& img, int numItr);
     
     
@@ -143,7 +171,6 @@ private:
      */
     bool filterFoundFruit(CitrusDetector::Citrus& fruit, float radiusThresh);
     
-    
     /**
      \brief Draws circles on the image that represent the detected fruits
      \param img for the circles to be drawn on, this image will be modified
@@ -151,10 +178,23 @@ private:
      */
     void drawFruitCircles(cv::Mat& img, CitrusDetector::Citrus fruit);
     
+    /**
+     \brief Creates a visulization aid that displays text on a matrix
+     \param numCitrusFound is the number of citrus found by the algorithm
+     \param timeMS is the time it takes to run the algorithm on that current frame
+     \param size indicates the dimensions of the text matrix
+     \param top indicates whether to create the top or bottom text bar
+     \return a matrix with the desired text
+     */
     cv::Mat createTextBar(int numCitrusFound, int timeMS, cv::Size size, bool top);
     
-
-    
+    /**
+     \brief Saves the given image frame as a ".png" with the frameName and frameNum appended
+     \param img is the frame to save
+     \param frameName is the name of the frame to save
+     \param frameNum is the index number to append to the frameName before saving
+     \return [T] if recording is enabled and [F] if recording is disabled
+     */
     bool saveFrame(cv::Mat& img, std::string frameName, int frameNum);
     
 };
