@@ -21,6 +21,7 @@
 #define PIX_WHITE 255
 
 #define DEBUG_CLUSTER false
+#define DEBUG_HOUGH false
 
 /**
  \brief CitrusDetector is a C++ class that uses classical computer vision methods to detect citrus fruit on trees in an orchard environment.
@@ -77,6 +78,7 @@ private:
     cv::Scalar m_circleColor = cv::Scalar(255,0,127);
     
     // Recording Parameters
+    cv::Size m_imgSize;
     bool m_record = false;
     std::string m_savePath = "";
     int m_frameNum = 0;
@@ -160,9 +162,10 @@ private:
     /**
      \brief Fits circles to the fruit using a collection of clustered blobs
      \param contours is a collection of points that represent each blob
+     \param useHough [T] will use the Circle Hough Transform to fit the fruit, [F] will find the min enclosing circle for the cluster contours
      \return a Citrus struct that includes vectors of fruit centers and radiuses
      */
-    CitrusDetector::Citrus fitCirclesToFruit(std::vector<std::vector<cv::Point>> contours);
+    CitrusDetector::Citrus fitCirclesToFruit(std::vector<std::vector<cv::Point>> contours, bool useHough);
     
     /**
      \brief Removed objets that are too small to be considered a fruit

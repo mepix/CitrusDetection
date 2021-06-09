@@ -39,6 +39,7 @@ CitrusDetector::Citrus CitrusDetector::findFruit(cv::Mat& imgColor, cv::Mat& img
         cv::resize(imgDepth, imgDepth, cv::Size(), m_scaleFactor, m_scaleFactor, cv::INTER_AREA);
         cv::resize(imgColor, imgColor, cv::Size(), m_scaleFactor, m_scaleFactor, cv::INTER_AREA);
     }
+    m_imgSize = imgColor.size();
 
     // Create a copy of the original image
     cv::Mat imgOrig = imgColor.clone();
@@ -55,7 +56,7 @@ CitrusDetector::Citrus CitrusDetector::findFruit(cv::Mat& imgColor, cv::Mat& img
     std::vector<std::vector<cv::Point>> contours = clusterFruits(imgColorFiltered,imgDepth,imgClustered,CLUSTER_2D);
     
     // Circle Fitting
-    m_foundFruits = fitCirclesToFruit(contours);
+    m_foundFruits = fitCirclesToFruit(contours,true);
     if(filterFoundFruit(m_foundFruits, m_fruitMinRadius)){
 
     };
@@ -320,27 +321,83 @@ std::vector<std::vector<cv::Point>> CitrusDetector::clusterFruits(cv::Mat& imgCo
     return contours;
 }
 
-CitrusDetector::Citrus CitrusDetector::fitCirclesToFruit(std::vector<std::vector<cv::Point>> contours){
+CitrusDetector::Citrus CitrusDetector::fitCirclesToFruit(std::vector<std::vector<cv::Point>> contours, bool useHough){
     
     //Ref: https://docs.opencv.org/4.5.2/da/d0c/tutorial_bounding_rects_circles.html
     //Ref: https://docs.opencv.org/4.5.2/d4/d70/tutorial_hough_circle.html
     
     //TODO: experiment with more advanced fitting algorithms, RANSAC?
-    
     // Declare Variables
     std::vector<std::vector<cv::Point> > contours_poly( contours.size() );
     std::vector<cv::Rect> boundRect( contours.size() );
     std::vector<cv::Point2f>centers( contours.size() );
     std::vector<float>radius( contours.size() );
+    std::vector<cv::Vec3f> circles;
+    
     
     // Loop through the contours
     for( int i = 0; i < contours.size(); i++ )
     {
-        // Use a polygon approximation for the contour blobs
-        cv::approxPolyDP( contours[i], contours_poly[i], 3, true );
-        
-        // Find the minimum enclosing circle
-        cv::minEnclosingCircle( contours_poly[i], centers[i], radius[i] );
+        if (useHough){
+            // Draw the contour on the image
+            cv::Mat mask = cv::Mat::zeros(m_imgSize,CV_8UC1);
+            cv::drawContours(mask, contours, i, cv::Scalar(PIX_WHITE,PIX_WHITE,PIX_WHITE));
+            
+            // Fit circle with the Hough Transform
+            cv::HoughCircles(mask, circles, cv::HOUGH_GRADIENT_ALT, .25,1,300,0.25,m_fruitMinRadius,0);
+            
+            // Add to the array
+            if(circles.size() > 0){
+                // Initialize points to sum
+                int x=0;
+                int y=0;
+                int r=0;
+                
+                // Calculate the average value
+                for( int j=0; j < circles.size() ; j++){
+                    // Get center and radius
+                    cv::Point center(cvRound(circles[j][0]), cvRound(circles[j][1]));
+                    int radius = cvRound(circles[j][2]);
+                    
+                    // Add to sum
+                    x += center.x;
+                    y += center.y;
+                    r += radius;
+
+                }
+
+                // Add to output candidates
+                centers[i] = cv::Point(int(x/circles.size()),int(y/circles.size()));
+                radius[i] = int(r/circles.size());
+                
+            }
+
+#if DEBUG_HOUGH
+            std::cerr << "Hough Detected " << circles.size() << " circles" << std::endl;
+            cv::Mat colorMask;
+            cv::cvtColor(mask, colorMask, cv::COLOR_GRAY2BGR);
+            for( int i = 0; i < circles.size(); i++ )
+            {
+                 cv::Point center(cvRound(circles[i][0]), cvRound(circles[i][1]));
+                 int radius = cvRound(circles[i][2]);
+                 // draw the circle center
+                 cv::circle( colorMask, center, 3, cv::Scalar(0,255,0), -1, 8, 0 );
+                 // draw the circle outline
+                 cv::circle( colorMask, center, radius, cv::Scalar(0,0,255), 3, 8, 0 );
+            }
+            cv::imshow("Hough",colorMask);
+            cv::waitKey(0);
+#endif
+            
+        } else { // Fit min enclosing circle to the contours
+
+            // Use a polygon approximation for the contour blobs
+            cv::approxPolyDP( contours[i], contours_poly[i], 3, true );
+            
+            // Find the minimum enclosing circle
+            cv::minEnclosingCircle( contours_poly[i], centers[i], radius[i] );
+        }
+    
     }
     
     // Prepare a citrus struct
