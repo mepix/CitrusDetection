@@ -60,33 +60,25 @@ CitrusDetector::Citrus CitrusDetector::findFruit(cv::Mat& imgColor, cv::Mat& img
     if(filterFoundFruit(m_foundFruits, m_fruitMinRadius)){
 
     };
-    
-    // RANSAC
-    
-    // Correlation
-    
+        
     // End Clock
     auto timeEnd = std::chrono::system_clock::now();
     std::chrono::duration<double> elapsed_seconds = timeEnd - timeStart;
     m_timeToRunMS = int(elapsed_seconds.count()*1000); //Convert to MS
 
-    
     // Visualize
     if (visualize){
         // Draw Fruits on Images
         drawFruitCircles(imgColor,m_foundFruits);
-//        drawFruitCircles(imgColorFiltered, m_foundFruits);
 
         // Create Combo Image to Show
         cv::Mat imgVis,imgText;
-        
         cv::Mat col1,col2,col3,col12,col123;
         cv::vconcat(imgOrig, imgColor, col1);
         cv::vconcat(imgDepth, imgClustered, col2);
         cv::vconcat(imgDistFiltered, imgColorFiltered, col3);
         cv::hconcat(col1, col2, col12);
         cv::hconcat(col12, col3, col123);
-        
         
         // Add Text Bar
         cv::Mat textBarTop = createTextBar(-1, -1, cv::Size(960,90),true);

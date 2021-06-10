@@ -28,6 +28,9 @@
  */
 class CitrusDetector {
 public:
+    /**
+     \brief Indicates which type of citrus to detect
+     */
     enum citrusType{
         CITRUS_ORANGE,
         CITRUS_GRAPEFRUIT
@@ -40,6 +43,9 @@ public:
         std::vector<float> radius;
     };
 protected:
+    /**
+     \brief Indicates what clustering method to use for citrus detection
+     */
     enum citrusCluster{
         CLUSTER_2D,
         CLUSTER_3D
@@ -85,8 +91,22 @@ private:
 
     
 public:
+    /**
+     \brief Primary constructor for the Citrus Detector Class
+     \param scaleInput [T] will scale the input image, [F] will run the algorithm on the original input
+     */
     CitrusDetector(bool scaleInput);
+    
+    /**
+     \brief This primary function in the Citrus class runs the algorithm for citrus detection
+     \param imgColor the input 3-channel color image from the RGB-D camera
+     \param imgDepth the input 3-channel depth image from the RGB-D camera
+     \param fruitType the type of citrus to detect with the algorithm
+     \param visualize [T] will create a visual of the pipeline to display. This will be saved if recording is enabled
+     \return A ctruct containing the detected citrus fruit's centers and radii
+     */
     CitrusDetector::Citrus findFruit(cv::Mat& imgColor, cv::Mat& imgDepth, CitrusDetector::citrusType fruitType, bool visualize);
+
     /**
      \brief Draws circles on the image that represent the detected citrus
      \param img for the circles to be drawn on, THIS WILL BE MODIFIED in the current implementation!
@@ -155,9 +175,15 @@ private:
      */
     cv::Mat morphOpen(cv::Mat& img, int numItr);
     
-    
-    std::vector<std::vector<cv::Point>> clusterFruits(cv::Mat& imgColor, cv::Mat& imgDepth, cv::Mat3b& imgClusterOut,CitrusDetector::citrusCluster clusterMethod);
-    
+    /**
+     \brief Clusters the fruits found in the color and depth images
+     \param imgColor 3-channel color image
+     \param imgDepth 1-channel depth image
+     \param imgClusterOut an empth 3-channel cv::Mat that contains the clustered regions
+     \param clusterMethod indicates the method to use for clustering
+     \return the clustered contours
+     */
+    std::vector<std::vector<cv::Point>> clusterFruits(cv::Mat& imgColor, cv::Mat& imgDepth, cv::Mat3b& imgClusterOut, CitrusDetector::citrusCluster clusterMethod);
     
     /**
      \brief Fits circles to the fruit using a collection of clustered blobs
