@@ -7,6 +7,14 @@
 # *~
 *~
 
+#####################
+## PROJET SPECIFIC ##
+#####################
+
+src/orangedetect-xc.xcodeproj/
+doc/doxygen/html
+doc/doxygen/latex
+
 ###############
 ## Apple OSX ##
 ###############
@@ -67,7 +75,7 @@ Carthage/Build
 
 # fastlane
 #
-# It is recommended to not store the screenshots in the git repo. Instead, use fastlane to re-generate the 
+# It is recommended to not store the screenshots in the git repo. Instead, use fastlane to re-generate the
 # screenshots whenever they are needed.
 # For more information about the recommended setup visit:
 # https://github.com/fastlane/fastlane/blob/master/docs/Gitignore.md
@@ -387,7 +395,7 @@ themes/classic/views/
 # ruby> f.close
 # ruby> exit # quit interactive ruby session
 
-# or add 0a 49 63 6e 6e 0d 0d 0a in binhex editor.  The extra 0a brackets the 'Icon\r\r' 
+# or add 0a 49 63 6e 6e 0d 0d 0a in binhex editor.  The extra 0a brackets the 'Icon\r\r'
 
 # REMINDER: do not edit Icon^M^M Carriage Returns
 Icon
